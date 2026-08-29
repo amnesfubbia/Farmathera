@@ -200,8 +200,9 @@
         .server-btn.active-link { border: 1.5px solid #fff !important; background: rgba(255,255,255,0.1); }
         
         /* DOWNLOAD & TRAILER GRID - DIPERKECIL */
-        .dl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; margin-bottom: 2px; }
-        .dl-link-btn { width: 100%; padding: 8px 2px; border-radius: 10px; background: #000; color: #fff; font-size: 9.5px; font-weight: 800; text-transform: uppercase; text-align: center; border: 1px solid #333; cursor: pointer; }
+        .dl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; margin-bottom: 2px; }
+        .dl-link-btn { width: 100%; padding: 7px 6px; border-radius: 8px; background: #000; color: #fff; font-size: 9px; font-weight: 800; text-transform: uppercase; text-align: center; border: 1px solid #1c1c1c; cursor: pointer; transition: all 0.2s; }
+        .dl-link-btn:active { background: #1c1c1c; }
         
         /* PENYELARASAN WARNA TOMBOL TRAILER */
         .btn-trailer-special { background: #000; color: #fff; border: 1px solid #333; }
@@ -550,9 +551,20 @@
         /* Landscape mode active */
         .landscape-active #movieModal { overflow: hidden !important; }
         .landscape-active #modalScrollTop { height: 100vh; max-width: 100%; padding: 0; }
-        .landscape-active .carousel-slide { height: 100vh; width: 100vw; aspect-ratio: auto; }
-        .landscape-active .carousel-slide iframe { width: 100%; height: 100%; }
+        /* Overlay landscape WAJIB full-screen — override max-width:480px dari tablet fix,
+           supaya video mengisi layar penuh saat HP diputar landscape (seperti aplikasi film). */
+        .landscape-active .landscape-overlay {
+            max-width: 100vw !important;
+            width: 100vw !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+        }
         .landscape-active #mainVideoArea { height: 100vh !important; width: 100vw !important; }
+        .landscape-active .carousel-track { width: 100vw !important; height: 100vh !important; }
+        .landscape-active .carousel-slide { width: 100vw; height: 100vh; aspect-ratio: auto; }
+        .landscape-active .carousel-slide iframe { width: 100%; height: 100%; }
 
         /* --- ACTOR MODAL (Instagram Pro) --- */
         .actor-modal {
@@ -1386,7 +1398,13 @@
         }
         .rds-btn-row {
             display: grid; grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px; padding: 14px 16px 80px;
+            gap: 8px; padding: 14px 16px 20px;
+            /* Tombol menempel di dasar sheet (sticky), tidak mengambang di tengah */
+            position: sticky; bottom: 0;
+            background: #141414;
+            z-index: 5;
+            border-top: 1px solid #2a2a2a;
+            margin-top: auto;
         }
         .rds-btn-watch, .rds-btn-info {
             flex: 0 0 auto; padding: 8px 16px;
@@ -1854,6 +1872,72 @@
             margin-left: auto !important;
             margin-right: auto !important;
         }
+
+        /* ===== WARNA AKSEN (custom theme) ===== */
+        :root { --accent: #1a73e8; }
+        .nav-item-wrap.nav-active i, .nav-item-wrap:active i { color: var(--accent) !important; }
+        .server-btn.active-link, .ls-srv-btn.active-link { border-color: var(--accent) !important; background: rgba(0,0,0,0.12); }
+        .dot.bg-blue-500 { background: var(--accent) !important; }
+        .ep-btn.active-pill { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; }
+        .accent-swatch {
+            width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; display: inline-block;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .accent-swatch:active { transform: scale(0.85); }
+        .accent-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+
+        /* ===== LIGHT MODE ===== */
+        body.light-mode { background: #f2f2f5 !important; color: #18181b !important; }
+        body.light-mode #mainProfile,
+        body.light-mode .modal-player,
+        body.light-mode #searchOverlay,
+        body.light-mode #sideMenu,
+        body.light-mode #tvModal,
+        body.light-mode #notifModal,
+        body.light-mode #reelsModal,
+        body.light-mode #musicModal,
+        body.light-mode #reelDetailSheet,
+        body.light-mode .actor-modal,
+        body.light-mode #decadeModal,
+        body.light-mode #movieografiModal,
+        body.light-mode #lightboxModal,
+        body.light-mode #soundtrackModal,
+        body.light-mode #livesportModal,
+        body.light-mode #actorPhotosModal,
+        body.light-mode #splashScreen { background: #f2f2f5 !important; color: #18181b !important; }
+        body.light-mode .bottom-nav { background: #ffffff !important; border-top-color: #e4e4e7 !important; }
+        body.light-mode [class*="bg-black"], body.light-mode [class*="bg-zinc-950"],
+        body.light-mode [class*="bg-zinc-900"] { background: #ffffff !important; }
+        body.light-mode [class*="bg-zinc-800"], body.light-mode [class*="bg-zinc-700"] { background: #e9e9ee !important; }
+        body.light-mode [class*="text-white"] { color: #18181b !important; }
+        body.light-mode [class*="text-zinc-300"] { color: #3f3f46 !important; }
+        body.light-mode [class*="text-zinc-400"] { color: #71717a !important; }
+        body.light-mode [class*="text-zinc-500"], body.light-mode [class*="text-zinc-600"] { color: #8b8b94 !important; }
+        body.light-mode [class*="border-zinc-900"], body.light-mode [class*="border-zinc-800"],
+        body.light-mode [class*="border-zinc-700"] { border-color: #e4e4e7 !important; }
+        body.light-mode [class*="border-white"] { border-color: #d4d4d8 !important; }
+        body.light-mode .server-btn, body.light-mode .dl-link-btn,
+        body.light-mode .ep-action-btn, body.light-mode .ep-page-btn {
+            background: #ffffff !important; color: #27272a !important; border-color: #d4d4d8 !important;
+        }
+        body.light-mode .server-btn.active-link, body.light-mode .ls-srv-btn.active-link {
+            border-color: var(--accent) !important; background: rgba(26,115,232,0.08) !important;
+        }
+        body.light-mode .ep-btn.active-pill { background: var(--accent) !important; color: #fff !important; }
+        body.light-mode .ep-title, body.light-mode .ep-synopsis { color: #27272a !important; }
+        body.light-mode input, body.light-mode select, body.light-mode textarea { color: #18181b !important; background-color: #ffffff !important; }
+        body.light-mode input::placeholder { color: #a1a1aa !important; }
+        body.light-mode .about-hero-glow { opacity: 0.35; }
+        body.light-mode .sk { background: #e4e4e7 !important; }
+        body.light-mode .rds-btn-row { background: #f2f2f5 !important; border-top-color: #e4e4e7 !important; }
+        body.light-mode .accent-swatch.active { border-color: #18181b; }
+        /* Area video/player tetap gelap walau light mode aktif */
+        body.light-mode .carousel-slide, body.light-mode .iframe-loader,
+        body.light-mode .landscape-overlay, body.light-mode #mainVideoArea,
+        body.light-mode #tvPlayerArea, body.light-mode .reel-video-wrap { background: #000 !important; }
+        body.light-mode .ls-title-text, body.light-mode .ls-subtitle-text,
+        body.light-mode #lsTime, body.light-mode #lsDuration { color: #fff !important; }
     </style>
 </head>
 <body>
@@ -1885,7 +1969,7 @@
         </div>
     </div>
 
-    <div id="landscapeOverlay" class="landscape-overlay" onclick="toggleLsUI()">
+    <div id="landscapeOverlay" class="landscape-overlay" onclick="lsHandleTap()">
         <!-- Lock layer -->
         <div id="lsLockLayer" class="ls-lock-screen" style="display:none">
             <div class="ls-lock-badge" onclick="event.stopPropagation(); unlockScreen()">
@@ -1936,9 +2020,15 @@
                     <i class="fa-solid fa-forward-step ls-btn ls-btn-sm" onclick="event.stopPropagation(); lsCarouselNav(1)" title="Next"></i>
                     <i class="fa-solid fa-expand ls-btn ls-btn-sm" onclick="event.stopPropagation(); tryFullscreen()" title="Fullscreen"></i>
                 </div>
-                <!-- server pill -->
-                <div style="display:flex;justify-content:center;margin-top:8px">
+                <!-- server pill + volume -->
+                <div style="display:flex;justify-content:center;align-items:center;gap:16px;margin-top:8px">
                     <span class="ls-server-pill" id="lsServerPill" onclick="event.stopPropagation(); toggleLsServerPanel()">Server 1</span>
+                    <div style="display:flex;align-items:center;gap:8px" onclick="event.stopPropagation()">
+                        <i id="lsVolIcon" class="fa-solid fa-volume-high ls-btn ls-btn-sm" onclick="event.stopPropagation(); lsToggleMute()" title="Mute/Unmute"></i>
+                        <input id="lsVolSlider" type="range" min="0" max="100" value="100"
+                            oninput="lsSetVolume(this.value)"
+                            style="width:80px;height:22px;accent-color:#fff;cursor:pointer;background:transparent;touch-action:none">
+                    </div>
                 </div>
                 <div class="ls-hint">Tap screen to hide controls</div>
             </div>
@@ -2042,7 +2132,7 @@
                 </div>
                 <div class="about-feat-text">
                     <div class="about-feat-title">Multi-Server Download</div>
-                    <div class="about-feat-desc">5 server download tersedia untuk movie & series, termasuk per episode. Pilih server terbaik sesuai koneksi.</div>
+                    <div class="about-feat-desc">3 server download tersedia untuk movie & series, termasuk per episode. Pilih server terbaik sesuai koneksi.</div>
                 </div>
             </div>
             <div class="about-feature-row">
@@ -2095,6 +2185,28 @@
 
 
 
+        <!-- Pengaturan Tampilan -->
+        <div class="about-section-label">Pengaturan Tampilan</div>
+        <div class="about-info-list">
+            <div class="about-info-row" style="cursor:pointer" onclick="toggleLightMode()">
+                <span class="about-info-label">Mode Terang</span>
+                <span class="about-info-value" id="lightModeBadge">Gelap</span>
+            </div>
+            <div class="about-info-row" style="flex-wrap:wrap">
+                <span class="about-info-label">Warna Aksen</span>
+                <div class="about-info-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+                    <span class="accent-swatch active" data-color="#1a73e8" style="background:#1a73e8" onclick="setAccent('#1a73e8', this)"></span>
+                    <span class="accent-swatch" data-color="#e50914" style="background:#e50914" onclick="setAccent('#e50914', this)"></span>
+                    <span class="accent-swatch" data-color="#4caf7d" style="background:#4caf7d" onclick="setAccent('#4caf7d', this)"></span>
+                    <span class="accent-swatch" data-color="#a78bfa" style="background:#a78bfa" onclick="setAccent('#a78bfa', this)"></span>
+                    <span class="accent-swatch" data-color="#f472b6" style="background:#f472b6" onclick="setAccent('#f472b6', this)"></span>
+                    <span class="accent-swatch" data-color="#facc15" style="background:#facc15" onclick="setAccent('#facc15', this)"></span>
+                    <input type="color" id="accentPicker" value="#1a73e8" oninput="setAccent(this.value, null)" title="Warna custom"
+                        style="width:26px;height:26px;border:none;background:none;cursor:pointer;padding:0">
+                </div>
+            </div>
+        </div>
+
         <!-- Data source -->
         <div class="about-section-label">Sumber Data</div>
         <div class="about-info-list">
@@ -2112,7 +2224,7 @@
             </div>
             <div class="about-info-row">
                 <span class="about-info-label">Download Server</span>
-                <span class="about-info-value">5 Provider</span>
+                <span class="about-info-value">3 Provider</span>
             </div>
             <div class="about-info-row">
                 <span class="about-info-label">Live TV & IPTV</span>
@@ -2394,7 +2506,7 @@
                             <span id="mvcTime" style="font-size:11px;color:#fff;min-width:38px;font-weight:600">0:00</span>
                             <div id="mvcTrack" style="flex:1;height:3px;background:rgba(255,255,255,0.25);border-radius:2px;cursor:pointer;position:relative">
                                 <div id="mvcProgress" style="width:0%;height:100%;background:#fff;border-radius:2px;transition:width 0.5s linear"></div>
-                                <div id="mvcThumb" style="position:absolute;top:50%;left:0%;transform:translate(-50%,-50%);width:12px;height:12px;background:#1a73e8;border-radius:50%;transition:left 0.5s linear"></div>
+                                <div id="mvcThumb" style="position:absolute;top:50%;left:0%;transform:translate(-50%,-50%);width:12px;height:12px;background:var(--accent,#1a73e8);border-radius:50%;transition:left 0.5s linear"></div>
                             </div>
                             <span id="mvcDuration" style="font-size:11px;color:#aaa;min-width:38px;text-align:right">0:00</span>
                         </div>
@@ -2473,7 +2585,7 @@
                 <div id="seriesControl" class="hidden mt-4 p-4 bg-black rounded-2xl border border-zinc-900">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Episodes</h4>
-                        <select id="seasonSel" class="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 appearance-none" onchange="loadEpisodes()"></select>
+                        <select id="seasonSel" class="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 appearance-none" onchange="onSeasonChange()"></select>
                     </div>
                     <div id="episodeSearchWrap" style="margin-bottom:10px;display:none">
                         <div style="background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:8px">
@@ -2495,8 +2607,8 @@
                 
                 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;margin-bottom:2px;">
                     <button class="dl-link-btn" onclick="handleDownload()">Down1</button>
-                    <button class="dl-link-btn" onclick="handleDownload3()">Down3</button>
-                    <button class="dl-link-btn" onclick="handleDownload5()">Down4</button>
+                    <button class="dl-link-btn" onclick="handleDownload3()">Down2</button>
+                    <button class="dl-link-btn" onclick="handleDownload5()">Down3</button>
                 </div>
                 <div id="mCollectionSection" class="similar-section" style="display:none">
                     <span class="similar-label" id="mCollectionLabel">Part of Collection</span>
@@ -5206,32 +5318,12 @@
             } else { showToast('Media tidak ditemukan.'); }
         }
 
-        function handleDownload4() {
-            if(window.currentMediaId && window.currentMediaType) {
-                const isTV = window.currentMediaType === 'tv';
-                const url = isTV
-                    ? `https://rivestream.ru/download?type=tv&id=${window.currentMediaId}`
-                    : `https://dl.peachify.top/movie/${window.currentMediaId}`;
-                window.open(url, '_blank');
-            } else { showToast('Media tidak ditemukan.'); }
-        }
-
         function handleDownload5() {
             if(window.currentMediaId && window.currentMediaType) {
                 const isTV = window.currentMediaType === 'tv';
                 const url = isTV
                     ? `https://rivestream.ru/download?type=tv&id=${window.currentMediaId}`
                     : `https://rivestream.ru/download?type=movie&id=${window.currentMediaId}`;
-                window.open(url, '_blank');
-            } else { showToast('Media tidak ditemukan.'); }
-        }
-
-        function handleDownload6() {
-            if(window.currentMediaId && window.currentMediaType) {
-                const isTV = window.currentMediaType === 'tv';
-                const url = isTV
-                    ? `https://cinesrc.st/download/tv/${window.currentMediaId}`
-                    : `https://cinesrc.st/download/movie/${window.currentMediaId}`;
                 window.open(url, '_blank');
             } else { showToast('Media tidak ditemukan.'); }
         }
@@ -5253,7 +5345,7 @@
             modal.classList.remove('tv-mode');
             modal.style.display = 'none';
             const postContent = document.querySelector('#movieModal .ig-post-content');
-            if (postContent && document.getElementById('tvChannelSwitcher')) {
+            if (postContent) {
                 postContent.innerHTML = `
                 <div class="mb-1"><span class="ig-username" id="mModalTitle"></span><span id="mDesc" class="ig-caption"></span>
                 <div class="mt-1"><span id="mToggleBtn" class="toggle-btn hidden" onclick="handleToggleDesc()">more</span><p id="mTranslateBtn" onclick="handleTranslate()" style="display:none;margin-top:2px;font-size:11px;color:#fff;font-weight:700;cursor:pointer"></p></div></div>
@@ -5267,7 +5359,7 @@
                 <div id="seriesControl" class="hidden mt-4 p-4 bg-black rounded-2xl border border-zinc-900">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Episodes</h4>
-                        <select id="seasonSel" class="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 appearance-none" onchange="loadEpisodes()"></select>
+                        <select id="seasonSel" class="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 appearance-none" onchange="onSeasonChange()"></select>
                     </div>
                     <div id="episodeSearchWrap" style="margin-bottom:10px;display:none">
                         <div style="background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:8px">
@@ -5287,8 +5379,8 @@
                 <div id="serverList" class="server-scroll-wrapper mt-4 px-4"></div>
                 <div class="dl-grid">
                     <button class="dl-link-btn" onclick="handleDownload()">Down1</button>
-                    <button class="dl-link-btn" onclick="handleDownload3()">Down3</button>
-                    <button class="dl-link-btn" onclick="handleDownload5()">Down4</button>
+                    <button class="dl-link-btn" onclick="handleDownload3()">Down2</button>
+                    <button class="dl-link-btn" onclick="handleDownload5()">Down3</button>
                 </div>
                 <div id="mSimilarSection" class="similar-section" style="display:none">
                     <span class="similar-label">Similar Movies</span>
@@ -5709,6 +5801,203 @@
             clearTimeout(_orientDebounce);
             _orientDebounce = setTimeout(handleDeviceOrientation, 250);
         });
+
+        // ===== VOLUME NATIVE DI LANDSCAPE =====
+        let _lsVolume = 100, _lsMuted = false, _lsVolWarned = false;
+        (function _lsVolInit() {
+            try {
+                const v = parseInt(localStorage.getItem('lsVolume'), 10);
+                if (!isNaN(v)) _lsVolume = Math.min(100, Math.max(0, v));
+            } catch(e) {}
+        })();
+        function _lsVolTarget() {
+            // Trailer = iframe vid-N (YouTube/Dailymotion); streaming = player-frame
+            return activeServerIdx === 99
+                ? document.getElementById(`vid-${currentIdx}`)
+                : document.getElementById('player-frame');
+        }
+        function _lsPostVolume(v) {
+            const f = _lsVolTarget();
+            if (!f || !f.contentWindow) return;
+            try {
+                const src = f.src || '';
+                if (activeServerIdx === 99) {
+                    if (src.includes('youtube') || src.includes('youtu.be')) {
+                        f.contentWindow.postMessage(JSON.stringify({event:'command', func:'setVolume', args:[v]}), '*');
+                        f.contentWindow.postMessage(JSON.stringify({event:'command', func: v === 0 ? 'mute' : 'unMute', args: []}), '*');
+                    } else if (src.includes('dailymotion')) {
+                        f.contentWindow.postMessage(JSON.stringify({command:'volume', params:[v / 100]}), '*');
+                    }
+                } else {
+                    // Best-effort untuk sebagian player streaming yang paham postMessage
+                    try { f.contentWindow.postMessage(JSON.stringify({type:'setVolume', volume: v / 100}), '*'); } catch(e) {}
+                    try { f.contentWindow.postMessage(JSON.stringify({event:'command', func:'setVolume', args:[v]}), '*'); } catch(e) {}
+                    if (!_lsVolWarned) {
+                        _lsVolWarned = true;
+                        showToast('Volume diatur dari player (server streaming)');
+                    }
+                }
+            } catch(e) {}
+        }
+        function _lsVolUI(v) {
+            const icon = document.getElementById('lsVolIcon');
+            if (icon) icon.className = `fa-solid ${v === 0 ? 'fa-volume-xmark' : v < 50 ? 'fa-volume-low' : 'fa-volume-high'} ls-btn ls-btn-sm`;
+            const s = document.getElementById('lsVolSlider');
+            if (s) s.value = v;
+        }
+        function lsSetVolume(v) {
+            _lsVolume = Math.min(100, Math.max(0, parseInt(v, 10) || 0));
+            _lsMuted = _lsVolume === 0;
+            try { localStorage.setItem('lsVolume', String(_lsVolume)); } catch(e) {}
+            _lsVolUI(_lsVolume);
+            _lsPostVolume(_lsVolume);
+        }
+        function lsToggleMute() {
+            _lsMuted = !_lsMuted;
+            lsSetVolume(_lsMuted ? 0 : (_lsVolume || 100));
+        }
+        // Inisialisasi UI volume saat masuk landscape
+        (function _lsVolInitUI() {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    if (document.getElementById('lsVolSlider')) { _lsVolUI(_lsVolume); _lsPostVolume(_lsVolume); }
+                }, 300);
+            });
+        })();
+
+        // ===== GESTUR LANDSCAPE: swipe keluar + double-tap play/pause =====
+        let _lsTapTimer = null, _lsTapCount = 0;
+        function lsHandleTap() {
+            const panel = document.getElementById('lsServerPanel');
+            if (panel && panel.classList.contains('open')) { toggleLsUI(); return; }
+            if (document.getElementById('lsLockLayer').style.display === 'flex') return;
+            _lsTapCount++;
+            if (_lsTapCount === 1) {
+                _lsTapTimer = setTimeout(() => {
+                    _lsTapCount = 0;
+                    toggleLsUI(); // single tap = toggle kontrol
+                }, 280);
+            } else {
+                _lsTapCount = 0;
+                clearTimeout(_lsTapTimer);
+                showLsUI(); // double tap = play/pause (hanya trailer; streaming diabaikan)
+                lsPlayPause();
+            }
+        }
+        (function _initLsSwipe() {
+            const overlay = document.getElementById('landscapeOverlay');
+            if (!overlay) return;
+            let sx = 0, sy = 0;
+            overlay.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) return;
+                if (e.target.closest('#lsServerPanel') || e.target.closest('#lsLockLayer')) return;
+                sx = e.touches[0].clientX;
+                sy = e.touches[0].clientY;
+            }, { passive: true });
+            overlay.addEventListener('touchend', e => {
+                if (!sx && !sy) return;
+                const dx = e.changedTouches[0].clientX - sx;
+                const dy = e.changedTouches[0].clientY - sy;
+                sx = 0; sy = 0;
+                if (Math.abs(dy) >= 60 && Math.abs(dy) > Math.abs(dx) * 1.2) {
+                    closeLandscapeSilently(); // swipe atas/bawah = keluar landscape
+                }
+            }, { passive: true });
+        })();
+
+        // ===== LANJUT TONTON (RESUME) =====
+        const RESUME_KEY = 'resumeData';
+        let _lastResumeSave = 0;
+        let _resumeTrailerTime = 0;   // posisi trailer (detik) untuk movie
+        let _pendingResumeEp = null;  // episode yang harus disorot untuk series
+        function getResumeData() {
+            try { return JSON.parse(localStorage.getItem(RESUME_KEY) || '{}'); } catch(e) { return {}; }
+        }
+        function saveResume(mediaId, opts) {
+            if (!mediaId) return;
+            try {
+                const map = getResumeData();
+                const cur = map[mediaId] || {};
+                if (opts.s !== undefined) cur.s = opts.s;
+                if (opts.e !== undefined) cur.e = opts.e;
+                if (typeof opts.t === 'number') cur.t = opts.t;
+                cur.ts = Date.now();
+                map[mediaId] = cur;
+                const keys = Object.keys(map);
+                if (keys.length > 200) delete map[keys[0]];
+                localStorage.setItem(RESUME_KEY, JSON.stringify(map));
+            } catch(e) {}
+        }
+        function fmtTime(sec) {
+            sec = Math.floor(sec || 0);
+            const m = Math.floor(sec / 60), s = sec % 60;
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+        let _resumeSeekIv = null;
+        function _resumeTrailerSeek(sec) {
+            if (!sec || sec < 15) return;
+            if (_resumeSeekIv) { clearInterval(_resumeSeekIv); _resumeSeekIv = null; }
+            let tries = 0;
+            _resumeSeekIv = setInterval(() => {
+                tries++;
+                const f = document.getElementById('vid-0');
+                if (f && f.contentWindow) {
+                    try { f.contentWindow.postMessage(JSON.stringify({event:'command', func:'seekTo', args:[sec, true]}), '*'); } catch(e) {}
+                }
+                if (tries >= 6) {
+                    clearInterval(_resumeSeekIv);
+                    _resumeSeekIv = null;
+                    _resumeTrailerTime = 0;
+                }
+            }, 1500);
+            showToast(`Lanjut trailer dari ${fmtTime(sec)}`);
+        }
+        function _applyResumeEpisode() {
+            if (!_pendingResumeEp || window.currentMediaType !== 'tv') { _pendingResumeEp = null; return; }
+            const ep = _pendingResumeEp;
+            _pendingResumeEp = null;
+            activeEpisode = ep;
+            document.querySelectorAll('.ep-card').forEach(b => {
+                b.classList.toggle('active-ep', parseInt(b.getAttribute('data-ep'), 10) === ep);
+            });
+            showToast(`Lanjut dari E${ep}`);
+        }
+
+        // ===== BINGE MODE: auto lanjut episode saat semua server gagal =====
+        // (modifikasi perilaku _tryNextServerOnFail — lihat fungsi aslinya)
+
+        // ===== TAMPILAN: LIGHT MODE & WARNA AKSEN =====
+        function applyAccent(color) {
+            try { document.documentElement.style.setProperty('--accent', color); } catch(e) {}
+            document.querySelectorAll('.accent-swatch').forEach(s => {
+                const sc = (s.getAttribute('data-color') || '').toLowerCase();
+                s.classList.toggle('active', sc === String(color).toLowerCase());
+            });
+            const p = document.getElementById('accentPicker');
+            if (p) p.value = color;
+        }
+        function setAccent(color, el) {
+            applyAccent(color);
+            try { localStorage.setItem('accentColor', color); } catch(e) {}
+        }
+        function applyThemePrefs() {
+            let accent = '#1a73e8';
+            try { accent = localStorage.getItem('accentColor') || accent; } catch(e) {}
+            applyAccent(accent);
+            let light = '0';
+            try { light = localStorage.getItem('lightMode') || '0'; } catch(e) {}
+            document.body.classList.toggle('light-mode', light === '1');
+            const badge = document.getElementById('lightModeBadge');
+            if (badge) badge.innerText = light === '1' ? 'Terang' : 'Gelap';
+        }
+        function toggleLightMode() {
+            const on = !document.body.classList.contains('light-mode');
+            document.body.classList.toggle('light-mode', on);
+            try { localStorage.setItem('lightMode', on ? '1' : '0'); } catch(e) {}
+            const badge = document.getElementById('lightModeBadge');
+            if (badge) badge.innerText = on ? 'Terang' : 'Gelap';
+        }
+        applyThemePrefs();
 
         function handleLsBack() { window.history.back(); }
 
@@ -6565,6 +6854,14 @@
                 if (lTime) lTime.textContent = fmt(cur);
                 if (lDur) lDur.textContent = fmt(dur);
                 _lsLastDuration = dur;
+                // Simpan posisi trailer (YouTube) untuk fitur lanjut tonton — tiap ~6 detik
+                if (activeServerIdx === 99 && window.currentMediaId && typeof cur === 'number') {
+                    const now = Date.now();
+                    if (!_lastResumeSave || now - _lastResumeSave > 6000) {
+                        _lastResumeSave = now;
+                        saveResume(window.currentMediaId, { t: cur });
+                    }
+                }
             } catch(e2) {}
         });
         // Stop video/streaming saat tab disembunyikan — tapi BUKAN music iframe
@@ -8046,6 +8343,10 @@
             const actorModal = document.getElementById('actorModal');
             if (actorModal.style.display === 'block') actorModal.style.display = 'none';
             window.currentMediaId = id; window.currentMediaType = type;
+            // State lanjut tonton — diset di awal supaya trailer render bisa langsung memakainya
+            _pendingResumeEp = null;
+            const _rdInit = getResumeData()[id] || {};
+            _resumeTrailerTime = (typeof _rdInit.t === 'number' && _rdInit.t > 15) ? _rdInit.t : 0;
             
             activeServerIdx = 1;
             activeEpisode = 1;
@@ -8231,6 +8532,8 @@
                 const so = document.getElementById('swipeOverlay');
                 so.style.display = vidsToDisplay.length > 1 ? 'block' : 'none';
                 so.style.pointerEvents = 'auto'; // aktifkan kembali untuk swipe trailer
+                // Fitur lanjut tonton: lompat ke posisi trailer yang tersimpan
+                _resumeTrailerSeek(_resumeTrailerTime);
             } else { 
                 await handleTrailerError();
             }
@@ -8361,7 +8664,22 @@
             }
             document.getElementById('serverList').innerHTML = serverButtonsHTML;
 
-            if(type === 'tv') { document.getElementById('seriesControl').classList.remove('hidden'); document.getElementById('seasonSel').innerHTML = (dId.seasons||[]).filter(s=>s.season_number>0).map(s=>`<option value="${s.season_number}">Season ${s.season_number}</option>`).join(''); loadEpisodes(); } else { document.getElementById('seriesControl').classList.add('hidden'); }
+            if(type === 'tv') {
+                document.getElementById('seriesControl').classList.remove('hidden');
+                document.getElementById('seasonSel').innerHTML = (dId.seasons||[]).filter(s=>s.season_number>0).map(s=>`<option value="${s.season_number}">Season ${s.season_number}</option>`).join('');
+                // Fitur lanjut tonton: pulihkan season & episode terakhir
+                const rdTv = getResumeData()[id] || {};
+                _pendingResumeEp = null;
+                if (rdTv.s) {
+                    const sel = document.getElementById('seasonSel');
+                    const exists = [...(sel?.options || [])].some(o => parseInt(o.value, 10) === parseInt(rdTv.s, 10));
+                    if (exists) { sel.value = rdTv.s; _pendingResumeEp = rdTv.e || null; }
+                }
+                loadEpisodes();
+            } else {
+                document.getElementById('seriesControl').classList.add('hidden');
+                // Posisi trailer movie sudah disiapkan di awal openModal (_resumeTrailerTime)
+            }
             updateLibButtons(id);
 
             // Rating badges (bintang berwarna, angka putih)
@@ -8440,7 +8758,7 @@
             document.body.style.overflow = 'auto';
             // Restore ig-post-content ke struktur asli jika sebelumnya TV mode
             const postContent = document.querySelector('#movieModal .ig-post-content');
-            if (postContent && document.getElementById('tvChannelSwitcher')) {
+            if (postContent) {
                 postContent.innerHTML = `
                 <div class="mb-1">
                     <span class="ig-username" id="mModalTitle"></span>
@@ -8457,7 +8775,7 @@
                 <div id="seriesControl" class="hidden mt-4 p-4 bg-black rounded-2xl border border-zinc-900">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Episodes</h4>
-                        <select id="seasonSel" class="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 appearance-none" onchange="loadEpisodes()"></select>
+                        <select id="seasonSel" class="bg-zinc-900 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 appearance-none" onchange="onSeasonChange()"></select>
                     </div>
                     <div id="episodeSearchWrap" style="margin-bottom:10px;display:none">
                         <div style="background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:8px">
@@ -8477,8 +8795,8 @@
                 <div id="serverList" class="server-scroll-wrapper mt-4 px-4"></div>
                 <div class="dl-grid">
                     <button class="dl-link-btn" onclick="handleDownload()">Down1</button>
-                    <button class="dl-link-btn" onclick="handleDownload3()">Down3</button>
-                    <button class="dl-link-btn" onclick="handleDownload5()">Down4</button>
+                    <button class="dl-link-btn" onclick="handleDownload3()">Down2</button>
+                    <button class="dl-link-btn" onclick="handleDownload5()">Down3</button>
                 </div>
                 <div id="mSimilarSection" class="similar-section" style="display:none">
                     <span class="similar-label">Similar Movies</span>
@@ -8604,6 +8922,25 @@
         function _tryNextServerOnFail() {
             if (_autoAdvanceCount >= TOTAL_SERVERS - 1) {
                 _autoAdvanceCount = 0;
+                // BINGE MODE: untuk series, kalau semua server gagal → lanjut otomatis
+                // ke episode berikutnya (server dari episode sebelumnya sudah mati semua).
+                if (window.currentMediaType === 'tv' && _allEpisodes.length > 0) {
+                    const nextEp = activeEpisode + 1;
+                    if (_allEpisodes.some(ep => ep.episode_number === nextEp)) {
+                        activeEpisode = nextEp;
+                        document.querySelectorAll('.ep-card').forEach(b => {
+                            b.classList.toggle('active-ep', parseInt(b.getAttribute('data-ep'), 10) === nextEp);
+                        });
+                        activeServerIdx = 1;
+                        document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active-link'));
+                        const allBtns = document.querySelectorAll('.server-btn');
+                        if (allBtns[0]) allBtns[0].classList.add('active-link');
+                        saveResume(window.currentMediaId, { s: activeSeason, e: nextEp });
+                        showToast(`Server gagal — lanjut ke E${nextEp}`);
+                        playVid(buildEmbedUrl('tv', window.currentMediaId, activeSeason, nextEp, 1));
+                        return;
+                    }
+                }
                 showToast('Semua server gagal dimuat, coba pilih manual.');
                 return;
             }
@@ -8624,6 +8961,10 @@
             activeServerIdx = srvIdx;
             document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active-link'));
             if(srvIdx !== 99) el.classList.add('active-link');
+            // Simpan progres episode untuk fitur lanjut tonton (kecuali mode trailer)
+            if (window.currentMediaType === 'tv' && srvIdx !== 99) {
+                saveResume(window.currentMediaId, { s: activeSeason, e: activeEpisode });
+            }
             const url = buildEmbedUrl(window.currentMediaType, window.currentMediaId, activeSeason, activeEpisode, activeServerIdx);
             playVid(url);
         }
@@ -8632,6 +8973,10 @@
             activeEpisode = epNum;
             document.querySelectorAll('.ep-btn').forEach(b => b.classList.remove('active-pill'));
             el.classList.add('active-pill');
+            // Simpan progres episode untuk fitur lanjut tonton
+            if (window.currentMediaType === 'tv') {
+                saveResume(window.currentMediaId, { s: activeSeason, e: epNum });
+            }
             const url = buildEmbedUrl(window.currentMediaType, window.currentMediaId, activeSeason, activeEpisode, activeServerIdx);
             playVid(url);
         }
@@ -8695,6 +9040,12 @@
         let _epPage = 0;
         const EP_PER_PAGE = 15;
 
+        function onSeasonChange() {
+            // Ganti musim oleh user — simpan progres agar bisa dilanjutkan
+            saveResume(window.currentMediaId, { s: document.getElementById('seasonSel').value, e: 1 });
+            loadEpisodes();
+        }
+
         async function loadEpisodes() { 
             activeSeason = document.getElementById('seasonSel').value;
             activeEpisode = 1;
@@ -8703,6 +9054,8 @@
             let data = await fetchWithCache(`https://api.themoviedb.org/3/tv/${window.currentMediaId}/season/${activeSeason}?api_key=${API_KEY}&language=en-US`);
             _allEpisodes = data.episodes || [];
             renderEpisodePage();
+            // Sorot episode terakhir yang ditonton (fitur lanjut tonton)
+            _applyResumeEpisode();
         }
 
         function renderEpisodePage() {
@@ -8740,7 +9093,7 @@
 
                 const actionRowHTML = '';
 
-                return `<div class="ep-card" style="flex-direction:column;padding-bottom:0" onclick="changeEpisode(${epNum}, this)">
+                return `<div class="ep-card" data-ep="${epNum}" style="flex-direction:column;padding-bottom:0" onclick="changeEpisode(${epNum}, this)">
                     <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0 4px">
                         <div class="ep-thumb-wrap">
                             ${thumbHTML}
