@@ -2882,6 +2882,12 @@
             </div>
 
             <div id="musicHomeScroll" style="flex:1;overflow-y:auto;padding-bottom:160px">
+                <!-- Hero carousel (5 slide, auto-rotate tiap 4 detik) -->
+                <div style="margin-bottom:26px">
+                    <div id="musicHeroTrack" style="display:flex;overflow:hidden;border-radius:16px;position:relative;touch-action:pan-y;margin:0 20px"></div>
+                    <div id="musicHeroDots" style="display:flex;justify-content:center;gap:6px;margin-top:10px"></div>
+                </div>
+
                 <!-- Rekomendasi -->
                 <div style="margin-bottom:28px">
                     <div style="padding:0 20px 12px"><span class="music-section-label"><i class="fa-solid fa-tower-broadcast" style="margin-right:6px"></i>Rekomendasi</span></div>
@@ -3096,6 +3102,9 @@
         <!-- ===== FULL PLAYER MODAL ===== -->
         <div id="musicFullPlayer" style="display:none;position:absolute;top:0;left:0;right:0;bottom:62px;z-index:30;background:#000;flex-direction:column;overflow:hidden">
             <div id="musicFullPlayerBg" style="position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(60px) brightness(0.25);transform:scale(1.3);transition:background-image 0.8s ease"></div>
+            <!-- Sumber lagu penuh (YouTube embed search) — tersembunyi di belakang artwork -->
+            <iframe id="musicYtFrame" allow="autoplay; encrypted-media; picture-in-picture"
+                style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;pointer-events:none;border:0;z-index:1"></iframe>
             <div style="position:relative;z-index:2;display:flex;flex-direction:column;height:100%;padding:0 0 10px">
                 <!-- Top bar -->
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 0">
@@ -3118,7 +3127,11 @@
                         <div id="musicFullTitle" style="font-size:22px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.3px"></div>
                         <div id="musicFullArtist" style="font-size:14px;color:#666;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
                     </div>
-                    <i id="musicFullLikeBtn" class="fa-regular fa-heart" onclick="musicToggleLike()" style="color:#666;font-size:24px;padding:8px 0 8px 14px;cursor:pointer;flex-shrink:0"></i>
+                    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+                        <span id="musicModeChip" onclick="musicToggleFullMode()" title="Ganti mode pemutaran: lagu penuh (YouTube) / preview 30 detik (iTunes)"
+                            style="font-size:8px;font-weight:800;padding:4px 9px;border-radius:10px;background:rgba(255,255,255,0.12);color:#fff;cursor:pointer;letter-spacing:0.8px;border:1px solid rgba(255,255,255,0.18)">FULL</span>
+                        <i id="musicFullLikeBtn" class="fa-regular fa-heart" onclick="musicToggleLike()" style="color:#666;font-size:24px;padding:8px 0;cursor:pointer;flex-shrink:0"></i>
+                    </div>
                 </div>
 
                 <!-- Progress bar -->
@@ -3315,6 +3328,7 @@
             document.getElementById('musicModal').style.display = 'none';
             document.body.style.overflow = 'auto';
             history.replaceState({view:'home'}, '');
+            musicHeroStopAuto(); // hentikan rotasi carousel saat modal ditutup
             // audio TETAP lanjut — sesuai requirement
         }
 
@@ -3366,6 +3380,7 @@
 
         // ---------- HOME CONTENT ----------
         async function musicLoadHomeContent() {
+            musicRenderHeroCarousel();
             musicRenderRecoList();
             musicLoadHomePlaylistCard();
             musicRenderCommunityPlaylists();
@@ -3902,20 +3917,102 @@
             _musicQueueIdx = idx;
             musicPlayCurrentQueueItem();
         }
+        // ===== PEMUTAR MUSIK: FULL (lagu penuh via YouTube) vs PREVIEW (iTunes 30 dtk) =====
+        let _musicFullMode = true;
+        (function _musicModeInit() {
+            try { _musicFullMode = localStorage.getItem('musicFullMode') !== '0'; } catch(e) {}
+        })();
+        let _musicFrameWin = null;     // contentWindow iframe YouTube musik
+        let _musicPollIv = null;       // polling getCurrentTime
+        let _musicYtFailTimer = null;  // fallback ke preview kalau YouTube gagal
+        let _musicYtGotSignal = false; // sudah dapat sinyal infoDelivery valid?
+        let _musicLastDur = 0;         // durasi lagu penuh terakhir (untuk seek)
+
+        function _musicYtURL(q) {
+            return `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(q)}&autoplay=1&playsinline=1&enablejsapi=1&rel=0&modestbranding=1&iv_load_policy=3`;
+        }
+        function _musicYtPostMsg(obj) {
+            if (!_musicFrameWin) return;
+            try { _musicFrameWin.postMessage(JSON.stringify(obj), '*'); } catch(e) {}
+        }
+        function _musicStartYt(q) {
+            const f = document.getElementById('musicYtFrame');
+            if (!f) return;
+            _musicFrameWin = null; _musicYtGotSignal = false;
+            f.src = _musicYtURL(q);
+            const readyIv = setInterval(() => {
+                if (f.contentWindow) { _musicFrameWin = f.contentWindow; clearInterval(readyIv); }
+            }, 200);
+            _musicStopPoll();
+            _musicPollIv = setInterval(() => {
+                _musicYtPostMsg({event:'listening', value:1});
+                _musicYtPostMsg({event:'command', func:'getCurrentTime', args:''});
+            }, 1200);
+            // Fallback: kalau 9 detik tidak ada sinyal apa pun → pakai preview 30 detik
+            if (_musicYtFailTimer) clearTimeout(_musicYtFailTimer);
+            _musicYtFailTimer = setTimeout(() => {
+                if (!_musicYtGotSignal) {
+                    showToast('Lagu penuh tidak tersedia — pakai preview 30 detik');
+                    _musicPlayPreview(_musicCurrentTrack);
+                }
+            }, 9000);
+        }
+        function _musicStopYt() {
+            if (_musicYtFailTimer) { clearTimeout(_musicYtFailTimer); _musicYtFailTimer = null; }
+            _musicStopPoll();
+            const f = document.getElementById('musicYtFrame');
+            if (f && f.src) {
+                try { _musicYtPostMsg({event:'command', func:'pauseVideo', args:''}); } catch(e) {}
+                f.src = '';
+            }
+            _musicFrameWin = null;
+        }
+        function _musicStopPoll() {
+            if (_musicPollIv) { clearInterval(_musicPollIv); _musicPollIv = null; }
+        }
+        function _musicStopAudio() {
+            if (_musicAudio) { try { _musicAudio.pause(); } catch(e) {} _musicAudio.src = ''; _musicAudio = null; }
+        }
+        function _musicPlayPreview(t) {
+            if (!t || !t.preview) return;
+            _musicStopAudio();
+            _musicAudio = new Audio(t.preview);
+            _musicAudio.volume = (document.getElementById('musicVolumeSlider')?.value || 100) / 100;
+            _musicAudio.play().catch(() => {});
+            _musicPlaying = true;
+            musicBindAudioEvents();
+        }
+
         function musicPlayCurrentQueueItem() {
             const t = _musicQueue[_musicQueueIdx];
             if (!t) return;
             _musicCurrentTrack = t;
-
-            if (_musicAudio) { _musicAudio.pause(); _musicAudio.src = ''; }
-            _musicAudio = new Audio(t.preview);
-            _musicAudio.volume = (document.getElementById('musicVolumeSlider')?.value || 100) / 100;
-            _musicAudio.play().catch(e => console.warn(e));
             _musicPlaying = true;
-
+            if (_musicFullMode && t.title) {
+                _musicStopAudio();
+                _musicStartYt(`${t.artist || ''} ${t.title} - official audio`);
+            } else {
+                _musicStopYt();
+                _musicPlayPreview(t);
+            }
             musicUpdateAllUI(t);
             musicAddToHistory(t);
-            musicBindAudioEvents();
+            _musicUpdateModeChip();
+        }
+
+        function musicToggleFullMode() {
+            _musicFullMode = !_musicFullMode;
+            try { localStorage.setItem('musicFullMode', _musicFullMode ? '1' : '0'); } catch(e) {}
+            _musicUpdateModeChip();
+            if (_musicCurrentTrack) {
+                showToast(_musicFullMode ? 'Mode: Lagu Penuh (YouTube)' : 'Mode: Preview 30 detik');
+                _musicStopYt(); _musicStopAudio();
+                musicPlayCurrentQueueItem();
+            }
+        }
+        function _musicUpdateModeChip() {
+            const chip = document.getElementById('musicModeChip');
+            if (chip) chip.innerText = _musicFullMode ? 'FULL' : '30s';
         }
 
         function musicBindAudioEvents() {
@@ -3957,6 +4054,21 @@
         }
 
         function musicTogglePlay() {
+            if (_musicFullMode && _musicFrameWin) {
+                // Mode lagu penuh (YouTube)
+                if (_musicPlaying) {
+                    _musicYtPostMsg({event:'command', func:'pauseVideo', args:''});
+                    _musicPlaying = false;
+                    document.getElementById('musicMiniPlayBtn').className = 'fa-solid fa-play';
+                    document.getElementById('musicFullPlayBtn').innerHTML = '<i class="fa-solid fa-play" style="color:#111;font-size:24px;margin-left:3px"></i>';
+                } else {
+                    _musicYtPostMsg({event:'command', func:'playVideo', args:''});
+                    _musicPlaying = true;
+                    document.getElementById('musicMiniPlayBtn').className = 'fa-solid fa-pause';
+                    document.getElementById('musicFullPlayBtn').innerHTML = '<i class="fa-solid fa-pause" style="color:#111;font-size:24px"></i>';
+                }
+                return;
+            }
             if (!_musicAudio) return;
             if (_musicPlaying) {
                 _musicAudio.pause(); _musicPlaying = false;
@@ -3973,13 +4085,13 @@
         // biar suaranya nggak dobel/tumpuk. Lanjut otomatis begitu sumber lain berhenti. ----------
         let _musicDuckedByOther = false;
         function musicDuckForOtherAudio() {
-            if (_musicAudio && _musicPlaying) {
+            if (_musicPlaying && (_musicAudio || _musicFrameWin)) {
                 musicTogglePlay();
                 _musicDuckedByOther = true;
             }
         }
         function musicResumeFromDuck() {
-            if (_musicDuckedByOther && _musicAudio && !_musicPlaying) {
+            if (_musicDuckedByOther && (_musicAudio || _musicFrameWin) && !_musicPlaying) {
                 musicTogglePlay();
             }
             _musicDuckedByOther = false;
@@ -4020,14 +4132,114 @@
         }
 
         function musicSeek(e) {
-            if (!_musicAudio || !_musicAudio.duration) return;
             const bar = document.getElementById('musicFullProgressBar');
             const rect = bar.getBoundingClientRect();
             const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            if (_musicFullMode && _musicFrameWin && _musicLastDur > 0) {
+                _musicYtPostMsg({event:'command', func:'seekTo', args:[pct * _musicLastDur, true]});
+                document.getElementById('musicFullProgress').style.width = (pct * 100) + '%';
+                return;
+            }
+            if (!_musicAudio || !_musicAudio.duration) return;
             _musicAudio.currentTime = pct * _musicAudio.duration;
         }
         function musicSetVolume(v) {
+            if (_musicFullMode && _musicFrameWin) {
+                _musicYtPostMsg({event:'command', func:'setVolume', args:[parseInt(v, 10) || 0]});
+                return;
+            }
             if (_musicAudio) _musicAudio.volume = v / 100;
+        }
+
+        // ---------- HERO CAROUSEL (5 slide, auto-rotate tiap 4 detik) ----------
+        let _musicHeroIdx = 0;
+        let _musicHeroIv = null;
+        let _musicHeroTracks = [];
+        function musicRenderHeroCarousel() {
+            const track = document.getElementById('musicHeroTrack');
+            if (!track) return;
+            const reco = (_musicHomeQueues.reco || []).slice(0, 5);
+            if (reco.length >= 5) {
+                _musicHeroTracks = reco;
+                _musicHeroRender(reco);
+                return;
+            }
+            musicFetchTracksByArtists(musicPickRandomArtists(5), 1)
+                .then(raw => {
+                    const tracks = raw.map(musicNormalize).slice(0, 5);
+                    _musicHeroTracks = tracks;
+                    _musicHeroRender(tracks);
+                }).catch(() => {});
+        }
+        function _musicHeroRender(tracks) {
+            const track = document.getElementById('musicHeroTrack');
+            const dots = document.getElementById('musicHeroDots');
+            if (!track || !tracks.length) return;
+            _musicHeroIdx = 0;
+            track.innerHTML = tracks.map((t, i) => `
+                <div onclick="musicPlayHeroSlide(${i})" style="min-width:100%;height:170px;position:relative;border-radius:16px;overflow:hidden;cursor:pointer;background:#141414">
+                    <img src="${t.artwork}" onerror="musicImgFallback(this)" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+                    <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.25) 100%)"></div>
+                    <div style="position:absolute;left:16px;right:60px;bottom:14px">
+                        <div style="font-size:8px;font-weight:800;color:rgba(255,255,255,0.65);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">${i === 0 ? 'Sedang Populer' : `Pilihan ${i + 1}`}</div>
+                        <div style="font-size:17px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.72);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.artist}</div>
+                    </div>
+                    <div style="position:absolute;right:14px;bottom:14px;width:42px;height:42px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.4)">
+                        <i class="fa-solid fa-play" style="color:#111;font-size:15px;margin-left:2px"></i>
+                    </div>
+                </div>`).join('');
+            dots.innerHTML = tracks.map((t, i) => `<div onclick="event.stopPropagation();musicHeroGo(${i})"
+                style="width:${i === 0 ? '16px' : '6px'};height:6px;border-radius:3px;background:${i === 0 ? '#fff' : '#3a3a3a'};cursor:pointer;transition:all 0.3s"></div>`).join('');
+            track.style.transform = 'translateX(0)';
+            _musicHeroBindSwipe(track);
+            musicHeroStartAuto();
+        }
+        function musicPlayHeroSlide(i) {
+            if (!_musicHeroTracks.length) return;
+            _musicQueue = _musicHeroTracks;
+            _musicQueueIdx = i;
+            musicPlayCurrentQueueItem();
+            musicOpenFullPlayer();
+        }
+        function musicHeroGo(i) {
+            const track = document.getElementById('musicHeroTrack');
+            const dots = document.getElementById('musicHeroDots');
+            if (!track || !_musicHeroTracks.length) return;
+            _musicHeroIdx = i;
+            track.style.transition = 'transform 0.45s cubic-bezier(0.25,1,0.5,1)';
+            track.style.transform = `translateX(-${i * 100}%)`;
+            [...(dots?.children || [])].forEach((d, j) => {
+                d.style.width = (j === i ? '16px' : '6px');
+                d.style.background = (j === i ? '#fff' : '#3a3a3a');
+            });
+            musicHeroStartAuto();
+        }
+        function musicHeroNext() {
+            if (!_musicHeroTracks.length) return;
+            musicHeroGo((_musicHeroIdx + 1) % _musicHeroTracks.length);
+        }
+        function musicHeroStartAuto() {
+            musicHeroStopAuto();
+            _musicHeroIv = setInterval(musicHeroNext, 4000);
+        }
+        function musicHeroStopAuto() {
+            if (_musicHeroIv) { clearInterval(_musicHeroIv); _musicHeroIv = null; }
+        }
+        function _musicHeroBindSwipe(track) {
+            let sx = 0, sy = 0;
+            track.addEventListener('touchstart', e => {
+                if (e.touches.length !== 1) return;
+                sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+            }, { passive: true });
+            track.addEventListener('touchend', e => {
+                const dx = e.changedTouches[0].clientX - sx;
+                const dy = e.changedTouches[0].clientY - sy;
+                if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+                    if (dx < 0) musicHeroNext();
+                    else musicHeroGo((_musicHeroIdx - 1 + _musicHeroTracks.length) % _musicHeroTracks.length);
+                }
+            }, { passive: true });
         }
 
         // ---------- LIKE / FAVORITE ----------
@@ -6828,6 +7040,36 @@
             try {
                 const d = JSON.parse(e.data);
                 if (d.event !== 'infoDelivery' || !d.info) return;
+                // PEMUTAR MUSIK FULL (YouTube) — update progress mini & full player
+                if (window._musicFrameWin && e.source === window._musicFrameWin) {
+                    const cur = typeof d.info.currentTime === 'number' ? d.info.currentTime : 0;
+                    const dur = typeof d.info.duration === 'number' ? d.info.duration : 0;
+                    if (dur > 0) _musicYtGotSignal = true;
+                    _musicLastDur = dur;
+                    const pct = dur > 0 ? (cur / dur * 100) : 0;
+                    const fmtT = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+                    const mp = document.getElementById('musicMiniProgress'); if (mp) mp.style.width = pct + '%';
+                    const fp = document.getElementById('musicFullProgress'); if (fp) fp.style.width = pct + '%';
+                    const ft = document.getElementById('musicFullThumb');   if (ft) ft.style.left = pct + '%';
+                    const cT = document.getElementById('musicFullCurTime'); if (cT) cT.textContent = fmtT(cur);
+                    const dT = document.getElementById('musicFullDurTime'); if (dT) dT.textContent = fmtT(dur);
+                    if (typeof d.info.playerState === 'number') {
+                        if (d.info.playerState === 1 && !_musicPlaying) {
+                            _musicPlaying = true;
+                            document.getElementById('musicMiniPlayBtn').className = 'fa-solid fa-pause';
+                            document.getElementById('musicFullPlayBtn').innerHTML = '<i class="fa-solid fa-pause" style="color:#111;font-size:24px"></i>';
+                        } else if (d.info.playerState === 2 && _musicPlaying) {
+                            _musicPlaying = false;
+                            document.getElementById('musicMiniPlayBtn').className = 'fa-solid fa-play';
+                            document.getElementById('musicFullPlayBtn').innerHTML = '<i class="fa-solid fa-play" style="color:#111;font-size:24px;margin-left:3px"></i>';
+                        } else if (d.info.playerState === 0 && _musicPlaying) {
+                            // Lagu selesai — lanjut otomatis ke lagu berikutnya
+                            _musicPlaying = false;
+                            musicNext();
+                        }
+                    }
+                    return;
+                }
                 // playerState: 1=playing, 2=paused, 0=ended — dipakai untuk auto-pause/lanjutkan musik
                 if (typeof d.info.playerState === 'number') {
                     if (d.info.playerState === 1) musicDuckForOtherAudio();
@@ -6867,8 +7109,8 @@
         // Stop video/streaming saat tab disembunyikan — tapi BUKAN music iframe
         function stopNonMusicIframes() {
             document.querySelectorAll('iframe').forEach(f => {
-                // Jangan hentikan music iframe
-                if (f.id === 'musicIframe') return;
+                // Jangan hentikan music iframe (termasuk pemutar lagu penuh YouTube)
+                if (f.id === 'musicIframe' || f.id === 'musicYtFrame') return;
                 const src = f.src || '';
                 if (src.includes('youtube.com') || src.includes('youtu.be')) {
                     try { f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); } catch(e) {}
